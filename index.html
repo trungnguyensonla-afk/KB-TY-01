@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KB-TY-01 | AI hỗ trợ giám sát ổ dịch bệnh động vật — Sơn La 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --teal-900:#0B3D3A;
+  --teal-800:#115E59;
+  --teal-700:#0F766E;
+  --teal-500:#14B8A6;
+  --teal-100:#CCFBF1;
+  --teal-50:#F0FDFA;
+  --sky-600:#0284C7;
+  --bg:#F5FAF9;
+  --card:#FFFFFF;
+  --ink:#0F2A28;
+  --muted:#5B7371;
+  --line:#DCEDEA;
+  --red:#DC2626;
+  --red-bg:#FEF2F2;
+  --red-bd:#FCA5A5;
+  --amber:#D97706;
+  --amber-bg:#FFFBEB;
+  --amber-bd:#FCD34D;
+  --green:#16A34A;
+  --green-bg:#F0FDF4;
+  --green-bd:#86EFAC;
+  --font-display:'Be Vietnam Pro',sans-serif;
+  --font-mono:'Roboto Mono',monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font-display);
+  background:
+    radial-gradient(1200px 500px at 100% -10%, var(--teal-100) 0%, transparent 60%),
+    var(--bg);
+  color:var(--ink);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;}
+.wrap{max-width:1360px;margin:0 auto;padding:0 24px 64px;}
+
+.topbar{
+  background:linear-gradient(120deg, var(--teal-900), var(--teal-700) 60%, var(--sky-600));
+  color:#fff;
+  padding:22px 0;
+  position:relative;
+  overflow:hidden;
+}
+.topbar::after{
+  content:"";
+  position:absolute; right:-60px; top:-80px;
+  width:320px; height:320px; border-radius:50%;
+  background:radial-gradient(circle, rgba(255,255,255,.12), transparent 70%);
+}
+.topbar-inner{max-width:1360px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;position:relative;z-index:1;}
+.brand{display:flex;align-items:center;gap:14px;}
+.brand-badge{
+  width:52px;height:52px;border-radius:14px;
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.35);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;
+}
+.brand-text .eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.72);}
+.brand-text h1{margin:2px 0 0;font-size:21px;font-weight:800;letter-spacing:-.01em;}
+.brand-text .sub{font-size:12.5px;color:rgba(255,255,255,.78);margin-top:2px;}
+.top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.pill{
+  font-family:var(--font-mono);
+  font-size:11.5px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.3);
+  color:#fff;
+}
+.btn-refresh{
+  display:flex;align-items:center;gap:8px;
+  background:#fff;color:var(--teal-800);
+  border:none;border-radius:10px;
+  padding:10px 16px;font-weight:700;font-size:13px;
+  cursor:pointer;font-family:var(--font-display);
+  box-shadow:0 6px 16px rgba(0,0,0,.15);
+  transition:transform .15s ease;
+}
+.btn-refresh:hover{transform:translateY(-1px);}
+.btn-refresh:disabled{opacity:.6;cursor:wait;}
+#apiStatus{font-family:var(--font-mono);font-size:11.5px;color:rgba(255,255,255,.85);}
+
+section{margin-top:30px;}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.section-head h2{font-size:16px;margin:0;font-weight:800;color:var(--teal-900);}
+.section-head .desc{font-size:12.5px;color:var(--muted);}
+.eyebrow-label{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal-700);font-weight:600;}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
+.kpi-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:18px 18px 16px;
+  position:relative;
+  overflow:hidden;
+}
+.kpi-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent, var(--teal-500));}
+.kpi-label{font-size:12px;color:var(--muted);font-weight:600;}
+.kpi-value{font-family:var(--font-mono);font-size:30px;font-weight:700;color:var(--ink);margin-top:6px;}
+.kpi-unit{font-size:12px;color:var(--muted);font-weight:500;}
+.kpi-foot{font-size:11.5px;color:var(--muted);margin-top:8px;}
+.kpi-card.c-red{--accent:var(--red);}
+.kpi-card.c-amber{--accent:var(--amber);}
+.kpi-card.c-green{--accent:var(--green);}
+.kpi-card.c-teal{--accent:var(--teal-700);}
+.kpi-card.c-sky{--accent:var(--sky-600);}
+
+.alert-banner{
+  background:var(--red-bg);
+  border:1px solid var(--red-bd);
+  border-radius:16px;
+  padding:16px 20px;
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+}
+.alert-banner .icon{font-size:24px;line-height:1;}
+.alert-banner h3{margin:0 0 6px;color:var(--red);font-size:14.5px;font-weight:800;}
+.alert-chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.alert-chip{
+  font-family:var(--font-mono);
+  font-size:11.5px;
+  background:#fff;
+  border:1px solid var(--red-bd);
+  color:#7F1D1D;
+  padding:5px 10px;
+  border-radius:8px;
+}
+
+.panel{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:20px;
+}
+.grid-2{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:stretch;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.chart-box{position:relative;height:280px;}
+.chart-box.tall{height:340px;}
+
+.loc-list{display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto;padding-right:4px;}
+.loc-row{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:10px;
+  border:1px solid var(--line);
+  background:#FBFEFE;
+}
+.loc-dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;}
+.loc-dot.do{background:var(--red);}
+.loc-dot.vang{background:var(--amber);}
+.loc-dot.xanh{background:var(--green);}
+.loc-name{font-weight:700;font-size:13px;flex:1;}
+.loc-meta{font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+.loc-badge{font-family:var(--font-mono);font-size:10.5px;padding:3px 8px;border-radius:999px;font-weight:700;}
+.loc-badge.do{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);}
+.loc-badge.vang{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd);}
+.loc-badge.xanh{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd);}
+
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+.filter-bar select, .filter-bar input{
+  font-family:var(--font-display);
+  font-size:12.5px;
+  padding:8px 12px;
+  border-radius:9px;
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--ink);
+}
+.filter-bar input{min-width:200px;}
+.filter-count{font-family:var(--font-mono);font-size:11.5px;color:var(--muted);margin-left:auto;}
+
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1100px;}
+thead th{
+  background:var(--teal-50);
+  color:var(--teal-900);
+  font-weight:700;
+  text-align:left;
+  padding:10px 12px;
+  border-bottom:2px solid var(--line);
+  cursor:pointer;
+  white-space:nowrap;
+  user-select:none;
+}
+thead th:hover{background:var(--teal-100);}
+thead th .arrow{font-size:10px;color:var(--muted);margin-left:3px;}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+tbody tr:hover{background:#FAFFFE;}
+.badge{font-family:var(--font-mono);font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;display:inline-block;}
+.badge.do{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd);}
+.badge.vang{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd);}
+.badge.xanh{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd);}
+.mono{font-family:var(--font-mono);}
+.muted{color:var(--muted);}
+
+.ai-panel{
+  background:linear-gradient(160deg, var(--teal-900), var(--teal-800));
+  color:#fff;
+  border-radius:18px;
+  padding:22px 24px;
+}
+.ai-panel .eyebrow-label{color:var(--teal-100);}
+.ai-panel h3{margin:6px 0 14px;font-size:17px;font-weight:800;}
+.ai-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.ai-card{
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:12px;
+  padding:14px 16px;
+}
+.ai-card .tag{font-family:var(--font-mono);font-size:10.5px;padding:3px 9px;border-radius:999px;font-weight:700;display:inline-block;margin-bottom:8px;}
+.ai-card.do .tag{background:rgba(220,38,38,.25);color:#FCA5A5;}
+.ai-card.vang .tag{background:rgba(217,119,6,.25);color:#FCD34D;}
+.ai-card.xanh .tag{background:rgba(22,163,74,.25);color:#86EFAC;}
+.ai-card p{margin:0;font-size:12.5px;line-height:1.55;color:rgba(255,255,255,.92);}
+.ai-card ul{margin:8px 0 0;padding-left:16px;font-size:12px;color:rgba(255,255,255,.85);}
+.ai-card li{margin-bottom:4px;}
+
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.step{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:16px;
+  background:#fff;
+  position:relative;
+}
+.step .num{
+  font-family:var(--font-mono);
+  font-size:11px;font-weight:700;
+  color:var(--teal-700);
+  background:var(--teal-100);
+  width:26px;height:26px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:10px;
+}
+.step h4{margin:0 0 6px;font-size:13px;font-weight:700;}
+.step p{margin:0;font-size:12px;color:var(--muted);}
+
+footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+
+.config-banner{
+  background:var(--amber-bg);border:1px solid var(--amber-bd);
+  border-radius:14px;padding:14px 18px;font-size:12.5px;color:#78350F;margin-top:20px;
+}
+.config-banner code{background:#fff;padding:1px 6px;border-radius:5px;font-family:var(--font-mono);}
+
+@media (max-width:1100px){
+  .kpi-grid{grid-template-columns:repeat(3,1fr);}
+  .grid-2{grid-template-columns:1fr;}
+  .grid-3{grid-template-columns:1fr;}
+  .ai-grid{grid-template-columns:1fr;}
+  .steps{grid-template-columns:repeat(2,1fr);}
+}
+@media (max-width:640px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  table{min-width:900px;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-badge">🐾</div>
+      <div class="brand-text">
+        <div class="eyebrow">KB-TY-01 · IOC Tỉnh Sơn La</div>
+        <h1>AI hỗ trợ giám sát ổ dịch bệnh động vật</h1>
+        <div class="sub">Chi cục Chăn nuôi, Thú y và Thủy sản — Sở Nông nghiệp và Môi trường tỉnh Sơn La</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span class="pill" id="metaKy">Kỳ dữ liệu: —</span>
+      <span class="pill" id="apiStatus">⏳ Đang khởi tạo…</span>
+      <button class="btn-refresh" id="btnRefresh" onclick="loadData()">🔄 Cập nhật dữ liệu</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- KPI -->
+  <section>
+    <div class="section-head">
+      <div>
+        <div class="eyebrow-label">Tổng quan điều hành</div>
+        <h2>5 chỉ số nhìn một màn hình</h2>
+      </div>
+      <div class="desc">Cập nhật tự động từ Kho dữ liệu dùng chung — CSDL phòng, chống dịch bệnh động vật</div>
+    </div>
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card c-teal">
+        <div class="kpi-label">Tổng số ổ dịch</div>
+        <div class="kpi-value" id="kpiTong">—</div>
+        <div class="kpi-foot" id="kpiTongFoot">— xã/phường có dịch</div>
+      </div>
+      <div class="kpi-card c-amber">
+        <div class="kpi-label">Chưa qua 21 ngày</div>
+        <div class="kpi-value" id="kpiChua21">—</div>
+        <div class="kpi-foot">Đang trong diện theo dõi tích cực</div>
+      </div>
+      <div class="kpi-card c-green">
+        <div class="kpi-label">Đã qua 21 ngày</div>
+        <div class="kpi-value" id="kpiDa21">—</div>
+        <div class="kpi-foot">Chuyển theo dõi thường quy</div>
+      </div>
+      <div class="kpi-card c-red">
+        <div class="kpi-label">Cảnh báo Đỏ</div>
+        <div class="kpi-value" id="kpiDo">—</div>
+        <div class="kpi-foot">Cần chỉ đạo kiểm tra ngay</div>
+      </div>
+      <div class="kpi-card c-sky">
+        <div class="kpi-label">Tổng mắc / chết-tiêu hủy</div>
+        <div class="kpi-value" id="kpiMacChet" style="font-size:22px;">— / —</div>
+        <div class="kpi-foot">con</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Alert banner -->
+  <section>
+    <div class="alert-banner">
+      <div class="icon">🚨</div>
+      <div style="flex:1;">
+        <h3 id="alertTitle">Đang tải cảnh báo Đỏ…</h3>
+        <div class="muted" style="font-size:12.5px;">Ổ dịch chưa qua 21 ngày theo dõi và có yếu tố phức tạp (kéo dài &gt;10 ngày; ≥3 tổ/bản có dịch; hoặc mắc/chết-tiêu hủy vượt ngưỡng)</div>
+        <div class="alert-chip-row" id="alertChips"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Map substitute + disease chart -->
+  <section>
+    <div class="section-head">
+      <div>
+        <div class="eyebrow-label">Phân bố địa bàn</div>
+        <h2>Địa bàn có ổ dịch theo mức cảnh báo</h2>
+      </div>
+      <div class="desc">Xếp theo mức ưu tiên — thay thế lớp bản đồ GIS của IOC (chưa có dữ liệu tọa độ tổ/bản)</div>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="loc-list" id="locList"></div>
+      </div>
+      <div class="panel">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;">Số ổ dịch, số mắc, chết/tiêu hủy theo bệnh</div>
+        <div class="chart-box tall"><canvas id="chartDisease"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trend + top xa -->
+  <section>
+    <div class="section-head">
+      <div>
+        <div class="eyebrow-label">Thời gian xử lý</div>
+        <h2>Thời gian xử lý ổ dịch theo bệnh &amp; địa bàn</h2>
+      </div>
+      <div class="desc">Theo dõi tốc độ khống chế dịch theo từng loại bệnh và 10 xã/phường có nhiều ổ dịch nhất</div>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;">Thời gian xử lý trung bình theo bệnh (ngày)</div>
+        <div class="chart-box"><canvas id="chartXuLy"></canvas></div>
+      </div>
+      <div class="panel">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;">Top 10 xã/phường nhiều ổ dịch nhất</div>
+        <div class="chart-box"><canvas id="chartTopXa"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI recommendation -->
+  <section>
+    <div class="ai-panel">
+      <div class="eyebrow-label">Đề xuất của AI</div>
+      <h3>Phương án điều hành theo mức cảnh báo</h3>
+      <div class="ai-grid">
+        <div class="ai-card do">
+          <span class="tag">🔴 Đỏ — hành động ngay</span>
+          <p>Chỉ đạo UBND xã/phường kiểm tra ngay, cập nhật dữ liệu hằng ngày, làm rõ lý do kéo dài hoặc phát sinh nhiều tổ/bản có dịch.</p>
+          <ul>
+            <li>Rà soát tiêu hủy, tiêu độc khử trùng, kiểm soát vận chuyển</li>
+            <li>Tiêm phòng bao vây ổ dịch</li>
+            <li>Phòng Thú y tham mưu văn bản chỉ đạo / tổ chức đoàn kiểm tra</li>
+          </ul>
+        </div>
+        <div class="ai-card vang">
+          <span class="tag">🟡 Vàng — theo dõi sát</span>
+          <p>Giao cán bộ phụ trách địa bàn theo dõi sát ổ dịch chưa qua 21 ngày nhưng chưa đạt ngưỡng Đỏ.</p>
+          <ul>
+            <li>Đôn đốc cập nhật số ngày theo dõi, số mắc/chết-tiêu hủy</li>
+            <li>Tự động chuyển lên Đỏ nếu phát sinh thêm tổ/bản hoặc vượt 10 ngày xử lý</li>
+          </ul>
+        </div>
+        <div class="ai-card xanh">
+          <span class="tag">🟢 Xanh — theo dõi thường quy</span>
+          <p>Chuyển sang theo dõi thường quy sau xử lý; tiếp tục giám sát cộng đồng.</p>
+          <ul>
+            <li>Không thay thế thủ tục công bố hết dịch theo thẩm quyền</li>
+            <li>Cập nhật trạng thái khi có Quyết định công bố hết dịch</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Data table -->
+  <section>
+    <div class="section-head">
+      <div>
+        <div class="eyebrow-label">Bảng cảnh báo chi tiết</div>
+        <h2>Danh sách ổ dịch</h2>
+      </div>
+      <div class="desc">Lọc theo bệnh, địa bàn, mức cảnh báo — bấm tiêu đề cột để sắp xếp</div>
+    </div>
+    <div class="panel">
+      <div class="filter-bar">
+        <select id="fBenh"><option value="">Tất cả bệnh</option></select>
+        <select id="fCanhBao">
+          <option value="">Tất cả mức cảnh báo</option>
+          <option value="Đỏ">🔴 Đỏ</option>
+          <option value="Vàng">🟡 Vàng</option>
+          <option value="Xanh">🟢 Xanh</option>
+        </select>
+        <input type="text" id="fSearch" placeholder="Tìm xã/phường, mã ổ dịch...">
+        <span class="filter-count" id="filterCount">— dòng</span>
+      </div>
+      <div class="table-wrap">
+        <table id="oDichTable">
+          <thead>
+            <tr>
+              <th data-key="ma_o_dich">Mã ổ dịch <span class="arrow"></span></th>
+              <th data-key="benh">Bệnh <span class="arrow"></span></th>
+              <th data-key="xa_phuong">Xã/phường <span class="arrow"></span></th>
+              <th data-key="to_ban">Tổ/bản <span class="arrow"></span></th>
+              <th data-key="ngay_ca_cuoi">Ngày ca cuối <span class="arrow"></span></th>
+              <th data-key="so_ngay_theo_doi">Số ngày theo dõi <span class="arrow"></span></th>
+              <th data-key="so_to_ban">Số tổ/bản <span class="arrow"></span></th>
+              <th data-key="so_mac">Số mắc <span class="arrow"></span></th>
+              <th data-key="so_chet_tieu_huy">Chết/tiêu hủy <span class="arrow"></span></th>
+              <th data-key="muc_canh_bao">Mức cảnh báo <span class="arrow"></span></th>
+              <th data-key="ly_do_canh_bao">Lý do cảnh báo</th>
+              <th data-key="ghi_chu">Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody id="oDichBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section>
+    <div class="section-head">
+      <div>
+        <div class="eyebrow-label">Quy trình vận hành</div>
+        <h2>4 bước xử lý ổ dịch trên IOC</h2>
+      </div>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="num">01</div>
+        <h4>Thu thập dữ liệu</h4>
+        <p>Truy vấn CSDL phòng, chống dịch bệnh động vật và các biểu PLBC Dại, LMLM, DTLCP, VDNC.</p>
+      </div>
+      <div class="step">
+        <div class="num">02</div>
+        <h4>Tính toán chỉ số</h4>
+        <p>Tự tính số ngày theo dõi, thời gian xử lý, tổng mắc/chết-tiêu hủy theo từng ổ dịch.</p>
+      </div>
+      <div class="step">
+        <div class="num">03</div>
+        <h4>Phân nhóm cảnh báo</h4>
+        <p>Xếp hạng Đỏ/Vàng/Xanh theo ngưỡng thiết lập; đánh dấu xã/phường cần ưu tiên kiểm tra.</p>
+      </div>
+      <div class="step">
+        <div class="num">04</div>
+        <h4>Trực quan hóa trên IOC</h4>
+        <p>Cập nhật KPI, danh sách địa bàn, biểu đồ theo bệnh và bảng chi tiết theo thời gian thực.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="config-banner" id="configBanner" style="display:none;">
+    ⚠️ <strong>Đang xem dữ liệu mẫu tĩnh (snapshot).</strong> Để xem dữ liệu trực tiếp từ Google Sheets, mở file HTML này bằng trình soạn thảo văn bản, tìm biến <code>API_URL</code> trong phần script và dán URL Apps Script Web App vào (xem hướng dẫn ở tab HuongDan trong file Google Sheets).
+  </div>
+
+  <footer>
+    <span>KB-TY-01 — Cuộc thi ứng dụng AI &amp; Khai thác Kho dữ liệu dùng chung tỉnh Sơn La 2026</span>
+    <span id="footUpdated">Cập nhật lần cuối: —</span>
+  </footer>
+
+</div>
+
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────────────────
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//  DÁN URL APPS SCRIPT WEB APP VÀO ĐÂY (sau khi Deploy theo hướng dẫn)
+const API_URL = 'https://script.google.com/macros/s/AKfycbxiilBAc_eONFWmTw2E-go6Hf_ua4fdm0IVnuZNl6PJmi5bAoUGvToPYpzKGo_EUkWSvw/exec';
+// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+// Dữ liệu mẫu tĩnh dùng khi chưa cấu hình API_URL (xem trước giao diện)
+const SNAPSHOT_DATA = {"meta": {"Cơ quan": "Sở Nông nghiệp và Môi trường tỉnh Sơn La", "Đơn vị thực hiện": "Chi cục Chăn nuôi, Thú y và Thủy sản", "Mã kịch bản": "KB-TY-01", "Kỳ dữ liệu": "Dại/LMLM/VDNC đến 31/5/2026; DTLCP đến 24/6/2026"}, "thresholds": {"ngay_xanh": 21, "ngay_keo_dai": 10, "so_to_ban": 3, "nguong_mac_chet": 50}, "totals": {"tong_o_dich": 68, "chua_qua_21_ngay": 26, "da_qua_21_ngay": 42, "canh_bao_do": 21, "canh_bao_vang": 5, "canh_bao_xanh": 42, "tong_mac": 5538, "tong_chet_tieu_huy": 5432, "so_xa_co_dich": 49}, "by_disease": [{"benh": "Dại", "so_o_dich": 6, "so_xa": 3, "tong_mac": 6, "tong_chet": 6, "so_do": 0, "so_vang": 1, "so_xanh": 5, "ty_le_qua_21_ngay": 83.3}, {"benh": "LMLM", "so_o_dich": 2, "so_xa": 2, "tong_mac": 77, "tong_chet": 0, "so_do": 0, "so_vang": 0, "so_xanh": 2, "ty_le_qua_21_ngay": 100.0}, {"benh": "DTLCP", "so_o_dich": 55, "so_xa": 46, "tong_mac": 5418, "tong_chet": 5421, "so_do": 20, "so_vang": 4, "so_xanh": 31, "ty_le_qua_21_ngay": 56.4}, {"benh": "VDNC", "so_o_dich": 5, "so_xa": 5, "tong_mac": 37, "tong_chet": 5, "so_do": 1, "so_vang": 0, "so_xanh": 4, "ty_le_qua_21_ngay": 80.0}], "by_xa": [{"xa_phuong": "Xã Mường Bám", "so_o_dich": 2, "so_benh": 2, "tong_mac": 52, "tong_chet": 24, "so_do": 2, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Phường Chiềng Cơi", "so_o_dich": 1, "so_benh": 1, "tong_mac": 939, "tong_chet": 939, "so_do": 1, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Lóng Phiêng", "so_o_dich": 2, "so_benh": 1, "tong_mac": 508, "tong_chet": 508, "so_do": 1, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Song Khủa", "so_o_dich": 1, "so_benh": 1, "tong_mac": 356, "tong_chet": 356, "so_do": 1, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Mường La", "so_o_dich": 1, "so_benh": 1, "tong_mac": 313, "tong_chet": 313, "so_do": 1, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Sốp Cộp", "so_o_dich": 1, "so_benh": 1, "tong_mac": 310, "tong_chet": 310, "so_do": 1, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Phường Chiềng An", "so_o_dich": 1, "so_benh": 1, "tong_mac": 159, "tong_chet": 159, "so_do": 1, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Chiềng Lao", "so_o_dich": 1, "so_benh": 1, "tong_mac": 134, "tong_chet": 134, "so_do": 1, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Chiềng Mai", "so_o_dich": 1, "so_benh": 1, "tong_mac": 101, "tong_chet": 101, "so_do": 1, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Mường Khiêng", "so_o_dich": 2, "so_benh": 1, "tong_mac": 100, "tong_chet": 100, "so_do": 1, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Đoàn Kết", "so_o_dich": 1, "so_benh": 1, "tong_mac": 98, "tong_chet": 98, "so_do": 1, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Phù Yên", "so_o_dich": 1, "so_benh": 1, "tong_mac": 95, "tong_chet": 95, "so_do": 1, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Mường É", "so_o_dich": 2, "so_benh": 2, "tong_mac": 89, "tong_chet": 89, "so_do": 1, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Yên Châu", "so_o_dich": 1, "so_benh": 1, "tong_mac": 79, "tong_chet": 79, "so_do": 1, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Bắc Yên", "so_o_dich": 3, "so_benh": 2, "tong_mac": 72, "tong_chet": 70, "so_do": 1, "so_vang": 0, "so_xanh": 2, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Mường Chiên", "so_o_dich": 1, "so_benh": 1, "tong_mac": 71, "tong_chet": 72, "so_do": 1, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Thuận Châu", "so_o_dich": 3, "so_benh": 2, "tong_mac": 21, "tong_chet": 21, "so_do": 1, "so_vang": 0, "so_xanh": 2, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Muổi Nọi", "so_o_dich": 1, "so_benh": 1, "tong_mac": 15, "tong_chet": 15, "so_do": 1, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Bó Sinh", "so_o_dich": 1, "so_benh": 1, "tong_mac": 8, "tong_chet": 8, "so_do": 1, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Nậm Lầu", "so_o_dich": 1, "so_benh": 1, "tong_mac": 5, "tong_chet": 5, "so_do": 1, "so_vang": 0, "so_xanh": 0, "muc_uu_tien": "Ưu tiên cao"}, {"xa_phuong": "Xã Púng Bánh", "so_o_dich": 1, "so_benh": 1, "tong_mac": 544, "tong_chet": 544, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Chiềng Mung", "so_o_dich": 2, "so_benh": 1, "tong_mac": 526, "tong_chet": 526, "so_do": 0, "so_vang": 0, "so_xanh": 2, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Mai Sơn", "so_o_dich": 4, "so_benh": 2, "tong_mac": 258, "tong_chet": 258, "so_do": 0, "so_vang": 0, "so_xanh": 4, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Xuân Nha", "so_o_dich": 2, "so_benh": 2, "tong_mac": 118, "tong_chet": 62, "so_do": 0, "so_vang": 0, "so_xanh": 2, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Mường Cơi", "so_o_dich": 2, "so_benh": 2, "tong_mac": 108, "tong_chet": 108, "so_do": 0, "so_vang": 0, "so_xanh": 2, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Tạ Khoa", "so_o_dich": 2, "so_benh": 1, "tong_mac": 90, "tong_chet": 90, "so_do": 0, "so_vang": 0, "so_xanh": 2, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Bình Thuận ", "so_o_dich": 1, "so_benh": 1, "tong_mac": 68, "tong_chet": 68, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Chiềng La", "so_o_dich": 1, "so_benh": 1, "tong_mac": 63, "tong_chet": 63, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Sông Mã", "so_o_dich": 1, "so_benh": 1, "tong_mac": 42, "tong_chet": 42, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Mường Chanh", "so_o_dich": 1, "so_benh": 1, "tong_mac": 24, "tong_chet": 24, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Chiềng Sơ", "so_o_dich": 1, "so_benh": 1, "tong_mac": 24, "tong_chet": 24, "so_do": 0, "so_vang": 1, "so_xanh": 0, "muc_uu_tien": "Theo dõi sát"}, {"xa_phuong": "Xã Lóng Sập", "so_o_dich": 2, "so_benh": 1, "tong_mac": 22, "tong_chet": 22, "so_do": 0, "so_vang": 1, "so_xanh": 1, "muc_uu_tien": "Theo dõi sát"}, {"xa_phuong": "Tô Hiệu", "so_o_dich": 1, "so_benh": 1, "tong_mac": 22, "tong_chet": 22, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Tà Xùa", "so_o_dich": 1, "so_benh": 1, "tong_mac": 21, "tong_chet": 0, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Vân Hồ", "so_o_dich": 1, "so_benh": 1, "tong_mac": 14, "tong_chet": 14, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Phiêng Khoài", "so_o_dich": 1, "so_benh": 1, "tong_mac": 12, "tong_chet": 12, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Chiềng Khoong", "so_o_dich": 2, "so_benh": 1, "tong_mac": 10, "tong_chet": 10, "so_do": 0, "so_vang": 0, "so_xanh": 2, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Tà Hộc", "so_o_dich": 1, "so_benh": 1, "tong_mac": 9, "tong_chet": 9, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Tân Yên", "so_o_dich": 1, "so_benh": 1, "tong_mac": 7, "tong_chet": 7, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Chiềng Sung", "so_o_dich": 1, "so_benh": 1, "tong_mac": 5, "tong_chet": 5, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Mường Giôn", "so_o_dich": 1, "so_benh": 1, "tong_mac": 5, "tong_chet": 5, "so_do": 0, "so_vang": 1, "so_xanh": 0, "muc_uu_tien": "Theo dõi sát"}, {"xa_phuong": "Xã Mường Sại", "so_o_dich": 1, "so_benh": 1, "tong_mac": 4, "tong_chet": 4, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Huổi Một", "so_o_dich": 1, "so_benh": 1, "tong_mac": 4, "tong_chet": 4, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Chiềng Sơn", "so_o_dich": 1, "so_benh": 1, "tong_mac": 3, "tong_chet": 3, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã tà Xùa", "so_o_dich": 2, "so_benh": 1, "tong_mac": 2, "tong_chet": 2, "so_do": 0, "so_vang": 0, "so_xanh": 2, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Xím Vàng", "so_o_dich": 2, "so_benh": 1, "tong_mac": 2, "tong_chet": 2, "so_do": 0, "so_vang": 1, "so_xanh": 1, "muc_uu_tien": "Theo dõi sát"}, {"xa_phuong": "Phường Chiềng Sinh", "so_o_dich": 1, "so_benh": 1, "tong_mac": 2, "tong_chet": 2, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Xã Nậm Ty", "so_o_dich": 1, "so_benh": 1, "tong_mac": 2, "tong_chet": 2, "so_do": 0, "so_vang": 0, "so_xanh": 1, "muc_uu_tien": "Bình thường"}, {"xa_phuong": "Yên Sơn", "so_o_dich": 1, "so_benh": 1, "tong_mac": 2, "tong_chet": 2, "so_do": 0, "so_vang": 1, "so_xanh": 0, "muc_uu_tien": "Theo dõi sát"}], "outbreaks": [{"ma_o_dich": "KB-TY-01-DAI-01", "benh": "Dại", "xa_phuong": "Xã tà Xùa", "to_ban": "Bản Háng Cao", "ngay_phat_hien": "2026-01-11", "ngay_ca_cuoi": "2026-01-11", "so_to_ban": 1, "so_mac": 1, "so_chet_tieu_huy": 1, "khoi_luong_tieu_huy_kg": null, "ghi_chu": null, "ngay_bao_cao": "2026-05-31", "so_ngay_theo_doi": 140, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Xanh", "stt": 1, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DAI-02", "benh": "Dại", "xa_phuong": "Xã tà Xùa", "to_ban": "Bản Trang Dua Hang", "ngay_phat_hien": null, "ngay_ca_cuoi": "2026-01-20", "so_to_ban": 1, "so_mac": 1, "so_chet_tieu_huy": 1, "khoi_luong_tieu_huy_kg": null, "ghi_chu": "Ổ dịch tiếp nối của năm 2025", "ngay_bao_cao": "2026-05-31", "so_ngay_theo_doi": 131, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Xanh", "stt": 2, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DAI-03", "benh": "Dại", "xa_phuong": "Xã Xím Vàng", "to_ban": "Bản Phình Hồ", "ngay_phat_hien": "2026-02-03", "ngay_ca_cuoi": "2026-02-03", "so_to_ban": 1, "so_mac": 1, "so_chet_tieu_huy": 1, "khoi_luong_tieu_huy_kg": null, "ghi_chu": "Chó vô chủ, bản Phình Hồ, xã Xím Vàng", "ngay_bao_cao": "2026-05-31", "so_ngay_theo_doi": 117, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Xanh", "stt": 3, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DAI-04", "benh": "Dại", "xa_phuong": "Xã Xím Vàng", "to_ban": "Bản Pa Cư Sáng", "ngay_phat_hien": "2026-05-12", "ngay_ca_cuoi": "2026-05-12", "so_to_ban": 1, "so_mac": 1, "so_chet_tieu_huy": 1, "khoi_luong_tieu_huy_kg": null, "ghi_chu": null, "ngay_bao_cao": "2026-05-31", "so_ngay_theo_doi": 19, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Vàng", "stt": 4, "ly_do_canh_bao": "Chưa qua 21 ngày, chưa đạt ngưỡng Đỏ"}, {"ma_o_dich": "KB-TY-01-DAI-05", "benh": "Dại", "xa_phuong": "Xã Mai Sơn", "to_ban": "Tiểu khu 12", "ngay_phat_hien": "2026-02-24", "ngay_ca_cuoi": "2026-02-24", "so_to_ban": 1, "so_mac": 1, "so_chet_tieu_huy": 1, "khoi_luong_tieu_huy_kg": null, "ghi_chu": "Chó vô chủ, tiểu khu 12, xã Mai Sơn", "ngay_bao_cao": "2026-05-31", "so_ngay_theo_doi": 96, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Xanh", "stt": 5, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DAI-06", "benh": "Dại", "xa_phuong": "Xã Mai Sơn", "to_ban": "Tiểu khu 12", "ngay_phat_hien": "2026-05-08", "ngay_ca_cuoi": "2026-05-08", "so_to_ban": 1, "so_mac": 1, "so_chet_tieu_huy": 1, "khoi_luong_tieu_huy_kg": null, "ghi_chu": "Chó vô chủ xã Mai Sơn", "ngay_bao_cao": "2026-05-31", "so_ngay_theo_doi": 23, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Xanh", "stt": 6, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-LMLM-01", "benh": "LMLM", "xa_phuong": "Xã Tà Xùa", "to_ban": null, "ngay_phat_hien": "2026-03-18", "ngay_ca_cuoi": "2026-04-26", "so_to_ban": 1, "so_mac": 21, "so_chet_tieu_huy": 0, "khoi_luong_tieu_huy_kg": null, "ghi_chu": null, "ngay_bao_cao": "2026-05-31", "so_ngay_theo_doi": 35, "thoi_gian_xu_ly": 39, "muc_canh_bao": "Xanh", "stt": 7, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-LMLM-02", "benh": "LMLM", "xa_phuong": "Xã Xuân Nha", "to_ban": null, "ngay_phat_hien": "2026-04-17", "ngay_ca_cuoi": "2026-04-27", "so_to_ban": 1, "so_mac": 56, "so_chet_tieu_huy": 0, "khoi_luong_tieu_huy_kg": null, "ghi_chu": null, "ngay_bao_cao": "2026-05-31", "so_ngay_theo_doi": 34, "thoi_gian_xu_ly": 10, "muc_canh_bao": "Xanh", "stt": 8, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-01", "benh": "DTLCP", "xa_phuong": "Xã Chiềng Lao", "to_ban": null, "ngay_phat_hien": null, "ngay_ca_cuoi": "2026-06-12", "so_to_ban": 10, "so_mac": 134, "so_chet_tieu_huy": 134, "khoi_luong_tieu_huy_kg": 5306, "ghi_chu": "Ổ dịch tiếp của năm 2025", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 12, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Đỏ", "stt": 9, "ly_do_canh_bao": "Chưa qua 21 ngày; từ 3 tổ/bản trở lên; mắc/chết-tiêu hủy vượt ngưỡng"}, {"ma_o_dich": "KB-TY-01-DTLCP-02", "benh": "DTLCP", "xa_phuong": "Xã Chiềng Mung", "to_ban": null, "ngay_phat_hien": "2026-01-10", "ngay_ca_cuoi": "2026-02-24", "so_to_ban": 5, "so_mac": 481, "so_chet_tieu_huy": 481, "khoi_luong_tieu_huy_kg": 15992, "ghi_chu": "Hết dịch theo QĐ 227/QĐ-UBND ngày 25/3/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 120, "thoi_gian_xu_ly": 45, "muc_canh_bao": "Xanh", "stt": 10, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-03", "benh": "DTLCP", "xa_phuong": "Xã Chiềng Mung", "to_ban": null, "ngay_phat_hien": "2026-04-10", "ngay_ca_cuoi": "2026-05-07", "so_to_ban": 2, "so_mac": 45, "so_chet_tieu_huy": 45, "khoi_luong_tieu_huy_kg": 2271, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 48, "thoi_gian_xu_ly": 27, "muc_canh_bao": "Xanh", "stt": 11, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-04", "benh": "DTLCP", "xa_phuong": "Xã Thuận Châu", "to_ban": null, "ngay_phat_hien": null, "ngay_ca_cuoi": "2026-02-05", "so_to_ban": 4, "so_mac": 10, "so_chet_tieu_huy": 10, "khoi_luong_tieu_huy_kg": 1011, "ghi_chu": "Hết dịch theo QĐ 378/QĐ-UBND ngày 20/3/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 139, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Xanh", "stt": 12, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-05", "benh": "DTLCP", "xa_phuong": "Xã Thuận Châu", "to_ban": null, "ngay_phat_hien": "2026-05-15", "ngay_ca_cuoi": "2026-06-23", "so_to_ban": 3, "so_mac": 10, "so_chet_tieu_huy": 10, "khoi_luong_tieu_huy_kg": 938, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 1, "thoi_gian_xu_ly": 39, "muc_canh_bao": "Đỏ", "stt": 13, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày; từ 3 tổ/bản trở lên"}, {"ma_o_dich": "KB-TY-01-DTLCP-06", "benh": "DTLCP", "xa_phuong": "Xã Vân Hồ", "to_ban": null, "ngay_phat_hien": null, "ngay_ca_cuoi": "2026-03-21", "so_to_ban": 5, "so_mac": 14, "so_chet_tieu_huy": 14, "khoi_luong_tieu_huy_kg": 731, "ghi_chu": "Hết dịch theo QĐ 334/QĐ-UBND ngày 21/5/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 95, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Xanh", "stt": 14, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-07", "benh": "DTLCP", "xa_phuong": "Xã Tạ Khoa", "to_ban": null, "ngay_phat_hien": "2026-01-10", "ngay_ca_cuoi": "2026-01-16", "so_to_ban": 1, "so_mac": 9, "so_chet_tieu_huy": 9, "khoi_luong_tieu_huy_kg": 612, "ghi_chu": "Hết dịch theo QĐ 174/QĐ-UBND ngày 24/3/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 159, "thoi_gian_xu_ly": 6, "muc_canh_bao": "Xanh", "stt": 15, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-08", "benh": "DTLCP", "xa_phuong": "Xã Tạ Khoa", "to_ban": null, "ngay_phat_hien": "2026-04-10", "ngay_ca_cuoi": "2026-05-21", "so_to_ban": 1, "so_mac": 81, "so_chet_tieu_huy": 81, "khoi_luong_tieu_huy_kg": 5187, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 34, "thoi_gian_xu_ly": 41, "muc_canh_bao": "Xanh", "stt": 16, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-09", "benh": "DTLCP", "xa_phuong": "Xã Lóng Phiêng", "to_ban": null, "ngay_phat_hien": "2025-12-28", "ngay_ca_cuoi": "2026-01-05", "so_to_ban": 1, "so_mac": 5, "so_chet_tieu_huy": 5, "khoi_luong_tieu_huy_kg": 1080, "ghi_chu": "hết dịch theo QĐ 99/QĐ-UBND ngày 06/2/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 170, "thoi_gian_xu_ly": 8, "muc_canh_bao": "Xanh", "stt": 17, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-10", "benh": "DTLCP", "xa_phuong": "Xã Lóng Phiêng", "to_ban": null, "ngay_phat_hien": "2026-04-13", "ngay_ca_cuoi": "2026-06-08", "so_to_ban": 1, "so_mac": 503, "so_chet_tieu_huy": 503, "khoi_luong_tieu_huy_kg": 40639, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 16, "thoi_gian_xu_ly": 56, "muc_canh_bao": "Đỏ", "stt": 18, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày; mắc/chết-tiêu hủy vượt ngưỡng"}, {"ma_o_dich": "KB-TY-01-DTLCP-11", "benh": "DTLCP", "xa_phuong": "Xã Lóng Sập", "to_ban": null, "ngay_phat_hien": "2026-01-01", "ngay_ca_cuoi": "2026-02-09", "so_to_ban": 4, "so_mac": 18, "so_chet_tieu_huy": 18, "khoi_luong_tieu_huy_kg": 393, "ghi_chu": "Hết dich theo QĐ số 103/QĐ-UBND ngày 16/3/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 135, "thoi_gian_xu_ly": 39, "muc_canh_bao": "Xanh", "stt": 19, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-12", "benh": "DTLCP", "xa_phuong": "Xã Lóng Sập", "to_ban": null, "ngay_phat_hien": "2026-06-18", "ngay_ca_cuoi": "2026-06-20", "so_to_ban": 1, "so_mac": 4, "so_chet_tieu_huy": 4, "khoi_luong_tieu_huy_kg": 182, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 4, "thoi_gian_xu_ly": 2, "muc_canh_bao": "Vàng", "stt": 20, "ly_do_canh_bao": "Chưa qua 21 ngày, chưa đạt ngưỡng Đỏ"}, {"ma_o_dich": "KB-TY-01-DTLCP-13", "benh": "DTLCP", "xa_phuong": "Xã Chiềng Sơn", "to_ban": null, "ngay_phat_hien": null, "ngay_ca_cuoi": "2026-02-04", "so_to_ban": 1, "so_mac": 3, "so_chet_tieu_huy": 3, "khoi_luong_tieu_huy_kg": 77, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 140, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Xanh", "stt": 21, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-14", "benh": "DTLCP", "xa_phuong": "Xã Mai Sơn", "to_ban": null, "ngay_phat_hien": null, "ngay_ca_cuoi": "2026-01-08", "so_to_ban": 3, "so_mac": 35, "so_chet_tieu_huy": 35, "khoi_luong_tieu_huy_kg": 2013, "ghi_chu": "Hết dich theo QĐ số 239/QĐ-UBND ngày 30/3/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 167, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Xanh", "stt": 22, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-15", "benh": "DTLCP", "xa_phuong": "Xã Mai Sơn", "to_ban": null, "ngay_phat_hien": "2026-05-27", "ngay_ca_cuoi": "2026-05-31", "so_to_ban": 3, "so_mac": 221, "so_chet_tieu_huy": 221, "khoi_luong_tieu_huy_kg": 6399.9, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 24, "thoi_gian_xu_ly": 4, "muc_canh_bao": "Xanh", "stt": 23, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-16", "benh": "DTLCP", "xa_phuong": "Xã Mường Khiêng", "to_ban": null, "ngay_phat_hien": null, "ngay_ca_cuoi": "2026-01-26", "so_to_ban": 1, "so_mac": 2, "so_chet_tieu_huy": 2, "khoi_luong_tieu_huy_kg": 295, "ghi_chu": "Hết dịch theo QĐ 212/QĐ-UBND ngày 11/3/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 149, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Xanh", "stt": 24, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-17", "benh": "DTLCP", "xa_phuong": "Xã Mường Khiêng", "to_ban": null, "ngay_phat_hien": "2026-04-25", "ngay_ca_cuoi": "2026-06-20", "so_to_ban": 8, "so_mac": 98, "so_chet_tieu_huy": 98, "khoi_luong_tieu_huy_kg": 8580, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 4, "thoi_gian_xu_ly": 56, "muc_canh_bao": "Đỏ", "stt": 25, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày; từ 3 tổ/bản trở lên; mắc/chết-tiêu hủy vượt ngưỡng"}, {"ma_o_dich": "KB-TY-01-DTLCP-18", "benh": "DTLCP", "xa_phuong": "Xã Chiềng Khoong", "to_ban": null, "ngay_phat_hien": "2026-02-09", "ngay_ca_cuoi": "2026-02-12", "so_to_ban": 1, "so_mac": 2, "so_chet_tieu_huy": 2, "khoi_luong_tieu_huy_kg": 125, "ghi_chu": "Hết dịch theo QĐ 251/QĐ-UBND ngày 09/4/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 132, "thoi_gian_xu_ly": 3, "muc_canh_bao": "Xanh", "stt": 26, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-19", "benh": "DTLCP", "xa_phuong": "Xã Chiềng Khoong", "to_ban": null, "ngay_phat_hien": "2026-03-30", "ngay_ca_cuoi": "2026-04-01", "so_to_ban": 1, "so_mac": 8, "so_chet_tieu_huy": 8, "khoi_luong_tieu_huy_kg": 436, "ghi_chu": "Hết dịch theo QĐ 381/QĐ-UBND ngày 29/4/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 84, "thoi_gian_xu_ly": 2, "muc_canh_bao": "Xanh", "stt": 27, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-20", "benh": "DTLCP", "xa_phuong": "Phường Chiềng Cơi", "to_ban": null, "ngay_phat_hien": "2026-02-26", "ngay_ca_cuoi": "2026-06-15", "so_to_ban": 10, "so_mac": 939, "so_chet_tieu_huy": 939, "khoi_luong_tieu_huy_kg": 46204, "ghi_chu": "Ổ dịch tiếp của năm 2025", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 9, "thoi_gian_xu_ly": 109, "muc_canh_bao": "Đỏ", "stt": 28, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày; từ 3 tổ/bản trở lên; mắc/chết-tiêu hủy vượt ngưỡng"}, {"ma_o_dich": "KB-TY-01-DTLCP-21", "benh": "DTLCP", "xa_phuong": "Xã Bắc Yên", "to_ban": null, "ngay_phat_hien": "2026-02-23", "ngay_ca_cuoi": "2026-02-26", "so_to_ban": 1, "so_mac": 19, "so_chet_tieu_huy": 21, "khoi_luong_tieu_huy_kg": 1438, "ghi_chu": "Hết dịch theo QĐ 223/QĐ-UBND ngày 10/3/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 118, "thoi_gian_xu_ly": 3, "muc_canh_bao": "Xanh", "stt": 29, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-22", "benh": "DTLCP", "xa_phuong": "Xã Bắc Yên", "to_ban": null, "ngay_phat_hien": "2026-05-14", "ngay_ca_cuoi": "2026-06-13", "so_to_ban": 2, "so_mac": 49, "so_chet_tieu_huy": 49, "khoi_luong_tieu_huy_kg": 1418, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 11, "thoi_gian_xu_ly": 30, "muc_canh_bao": "Đỏ", "stt": 30, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày"}, {"ma_o_dich": "KB-TY-01-DTLCP-23", "benh": "DTLCP", "xa_phuong": "Phường Chiềng Sinh", "to_ban": null, "ngay_phat_hien": "2026-02-23", "ngay_ca_cuoi": "2026-04-29", "so_to_ban": 2, "so_mac": 2, "so_chet_tieu_huy": 2, "khoi_luong_tieu_huy_kg": 371, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 56, "thoi_gian_xu_ly": 65, "muc_canh_bao": "Xanh", "stt": 31, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-24", "benh": "DTLCP", "xa_phuong": "Xã Mường Cơi", "to_ban": null, "ngay_phat_hien": "2026-03-10", "ngay_ca_cuoi": "2026-05-29", "so_to_ban": 2, "so_mac": 107, "so_chet_tieu_huy": 107, "khoi_luong_tieu_huy_kg": 4925.5, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 26, "thoi_gian_xu_ly": 80, "muc_canh_bao": "Xanh", "stt": 32, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-25", "benh": "DTLCP", "xa_phuong": "Xã Chiềng La", "to_ban": null, "ngay_phat_hien": "2026-03-13", "ngay_ca_cuoi": "2026-05-11", "so_to_ban": 2, "so_mac": 63, "so_chet_tieu_huy": 63, "khoi_luong_tieu_huy_kg": 2989, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 44, "thoi_gian_xu_ly": 59, "muc_canh_bao": "Xanh", "stt": 33, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-26", "benh": "DTLCP", "xa_phuong": "Xã Bình Thuận ", "to_ban": null, "ngay_phat_hien": "2026-03-18", "ngay_ca_cuoi": "2026-05-11", "so_to_ban": 3, "so_mac": 68, "so_chet_tieu_huy": 68, "khoi_luong_tieu_huy_kg": 2891, "ghi_chu": "Hết dịch theo QĐ số 531 ngày 23/6/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 44, "thoi_gian_xu_ly": 54, "muc_canh_bao": "Xanh", "stt": 34, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-27", "benh": "DTLCP", "xa_phuong": "Xã Xuân Nha", "to_ban": null, "ngay_phat_hien": "2026-03-26", "ngay_ca_cuoi": "2026-05-16", "so_to_ban": 1, "so_mac": 62, "so_chet_tieu_huy": 62, "khoi_luong_tieu_huy_kg": 3269.5, "ghi_chu": "Hết dịch theo QĐ số 269/QĐ-UBND ngày 23/6/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 39, "thoi_gian_xu_ly": 51, "muc_canh_bao": "Xanh", "stt": 35, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-28", "benh": "DTLCP", "xa_phuong": "Xã Púng Bánh", "to_ban": null, "ngay_phat_hien": "2026-03-26", "ngay_ca_cuoi": "2026-05-28", "so_to_ban": 13, "so_mac": 544, "so_chet_tieu_huy": 544, "khoi_luong_tieu_huy_kg": 29696, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 27, "thoi_gian_xu_ly": 63, "muc_canh_bao": "Xanh", "stt": 36, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-29", "benh": "DTLCP", "xa_phuong": "Phường Chiềng An", "to_ban": null, "ngay_phat_hien": "2026-04-04", "ngay_ca_cuoi": "2026-06-22", "so_to_ban": 4, "so_mac": 159, "so_chet_tieu_huy": 159, "khoi_luong_tieu_huy_kg": 16332, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 2, "thoi_gian_xu_ly": 79, "muc_canh_bao": "Đỏ", "stt": 37, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày; từ 3 tổ/bản trở lên; mắc/chết-tiêu hủy vượt ngưỡng"}, {"ma_o_dich": "KB-TY-01-DTLCP-30", "benh": "DTLCP", "xa_phuong": "Xã Muổi Nọi", "to_ban": null, "ngay_phat_hien": "2026-04-06", "ngay_ca_cuoi": "2026-06-24", "so_to_ban": 2, "so_mac": 15, "so_chet_tieu_huy": 15, "khoi_luong_tieu_huy_kg": 1125, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 0, "thoi_gian_xu_ly": 79, "muc_canh_bao": "Đỏ", "stt": 38, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày"}, {"ma_o_dich": "KB-TY-01-DTLCP-31", "benh": "DTLCP", "xa_phuong": "Xã Mường La", "to_ban": null, "ngay_phat_hien": "2026-04-06", "ngay_ca_cuoi": "2026-06-23", "so_to_ban": 19, "so_mac": 313, "so_chet_tieu_huy": 313, "khoi_luong_tieu_huy_kg": 16654, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 1, "thoi_gian_xu_ly": 78, "muc_canh_bao": "Đỏ", "stt": 39, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày; từ 3 tổ/bản trở lên; mắc/chết-tiêu hủy vượt ngưỡng"}, {"ma_o_dich": "KB-TY-01-DTLCP-32", "benh": "DTLCP", "xa_phuong": "Xã Sốp Cộp", "to_ban": null, "ngay_phat_hien": "2026-04-06", "ngay_ca_cuoi": "2026-06-10", "so_to_ban": 11, "so_mac": 310, "so_chet_tieu_huy": 310, "khoi_luong_tieu_huy_kg": 11962.3, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 14, "thoi_gian_xu_ly": 65, "muc_canh_bao": "Đỏ", "stt": 40, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày; từ 3 tổ/bản trở lên; mắc/chết-tiêu hủy vượt ngưỡng"}, {"ma_o_dich": "KB-TY-01-DTLCP-33", "benh": "DTLCP", "xa_phuong": "Xã Đoàn Kết", "to_ban": null, "ngay_phat_hien": "2026-04-10", "ngay_ca_cuoi": "2026-06-21", "so_to_ban": 6, "so_mac": 98, "so_chet_tieu_huy": 98, "khoi_luong_tieu_huy_kg": 4436, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 3, "thoi_gian_xu_ly": 72, "muc_canh_bao": "Đỏ", "stt": 41, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày; từ 3 tổ/bản trở lên; mắc/chết-tiêu hủy vượt ngưỡng"}, {"ma_o_dich": "KB-TY-01-DTLCP-34", "benh": "DTLCP", "xa_phuong": "Xã Mường É", "to_ban": null, "ngay_phat_hien": "2026-04-15", "ngay_ca_cuoi": "2026-06-17", "so_to_ban": 9, "so_mac": 88, "so_chet_tieu_huy": 88, "khoi_luong_tieu_huy_kg": 4208, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 7, "thoi_gian_xu_ly": 63, "muc_canh_bao": "Đỏ", "stt": 42, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày; từ 3 tổ/bản trở lên; mắc/chết-tiêu hủy vượt ngưỡng"}, {"ma_o_dich": "KB-TY-01-DTLCP-35", "benh": "DTLCP", "xa_phuong": "Xã Tân Yên", "to_ban": null, "ngay_phat_hien": "2026-04-14", "ngay_ca_cuoi": "2026-05-12", "so_to_ban": 3, "so_mac": 7, "so_chet_tieu_huy": 7, "khoi_luong_tieu_huy_kg": 522.5, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 43, "thoi_gian_xu_ly": 28, "muc_canh_bao": "Xanh", "stt": 43, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-36", "benh": "DTLCP", "xa_phuong": "Xã Sông Mã", "to_ban": null, "ngay_phat_hien": "2026-04-20", "ngay_ca_cuoi": "2026-04-21", "so_to_ban": 1, "so_mac": 42, "so_chet_tieu_huy": 42, "khoi_luong_tieu_huy_kg": 2135.9, "ghi_chu": "Hết dịch theo QĐ 485/QĐ-UBND ngày 20/5/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 64, "thoi_gian_xu_ly": 1, "muc_canh_bao": "Xanh", "stt": 44, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-37", "benh": "DTLCP", "xa_phuong": "Xã Yên Châu", "to_ban": null, "ngay_phat_hien": "2026-04-21", "ngay_ca_cuoi": "2026-06-09", "so_to_ban": 4, "so_mac": 79, "so_chet_tieu_huy": 79, "khoi_luong_tieu_huy_kg": 2718, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 15, "thoi_gian_xu_ly": 49, "muc_canh_bao": "Đỏ", "stt": 45, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày; từ 3 tổ/bản trở lên; mắc/chết-tiêu hủy vượt ngưỡng"}, {"ma_o_dich": "KB-TY-01-DTLCP-38", "benh": "DTLCP", "xa_phuong": "Xã Phù Yên", "to_ban": null, "ngay_phat_hien": "2026-04-19", "ngay_ca_cuoi": "2026-06-07", "so_to_ban": 5, "so_mac": 95, "so_chet_tieu_huy": 95, "khoi_luong_tieu_huy_kg": 3335, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 17, "thoi_gian_xu_ly": 49, "muc_canh_bao": "Đỏ", "stt": 46, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày; từ 3 tổ/bản trở lên; mắc/chết-tiêu hủy vượt ngưỡng"}, {"ma_o_dich": "KB-TY-01-DTLCP-39", "benh": "DTLCP", "xa_phuong": "Xã Chiềng Mai", "to_ban": null, "ngay_phat_hien": "2026-04-26", "ngay_ca_cuoi": "2026-06-15", "so_to_ban": 6, "so_mac": 101, "so_chet_tieu_huy": 101, "khoi_luong_tieu_huy_kg": 5151, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 9, "thoi_gian_xu_ly": 50, "muc_canh_bao": "Đỏ", "stt": 47, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày; từ 3 tổ/bản trở lên; mắc/chết-tiêu hủy vượt ngưỡng"}, {"ma_o_dich": "KB-TY-01-DTLCP-40", "benh": "DTLCP", "xa_phuong": "Xã Mường Chiên", "to_ban": null, "ngay_phat_hien": "2026-04-22", "ngay_ca_cuoi": "2026-06-24", "so_to_ban": 5, "so_mac": 71, "so_chet_tieu_huy": 72, "khoi_luong_tieu_huy_kg": 4000, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 0, "thoi_gian_xu_ly": 63, "muc_canh_bao": "Đỏ", "stt": 48, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày; từ 3 tổ/bản trở lên; mắc/chết-tiêu hủy vượt ngưỡng"}, {"ma_o_dich": "KB-TY-01-DTLCP-41", "benh": "DTLCP", "xa_phuong": "Xã Song Khủa", "to_ban": null, "ngay_phat_hien": "2026-04-24", "ngay_ca_cuoi": "2026-06-24", "so_to_ban": 10, "so_mac": 356, "so_chet_tieu_huy": 356, "khoi_luong_tieu_huy_kg": 21228, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 0, "thoi_gian_xu_ly": 61, "muc_canh_bao": "Đỏ", "stt": 49, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày; từ 3 tổ/bản trở lên; mắc/chết-tiêu hủy vượt ngưỡng"}, {"ma_o_dich": "KB-TY-01-DTLCP-42", "benh": "DTLCP", "xa_phuong": "Xã Phiêng Khoài", "to_ban": null, "ngay_phat_hien": "2026-04-24", "ngay_ca_cuoi": "2026-05-10", "so_to_ban": 1, "so_mac": 12, "so_chet_tieu_huy": 12, "khoi_luong_tieu_huy_kg": 736, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 45, "thoi_gian_xu_ly": 16, "muc_canh_bao": "Xanh", "stt": 50, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-43", "benh": "DTLCP", "xa_phuong": "Xã Mường Chanh", "to_ban": null, "ngay_phat_hien": "2026-04-26", "ngay_ca_cuoi": "2026-05-19", "so_to_ban": 1, "so_mac": 24, "so_chet_tieu_huy": 24, "khoi_luong_tieu_huy_kg": 907.5, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 36, "thoi_gian_xu_ly": 23, "muc_canh_bao": "Xanh", "stt": 51, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-44", "benh": "DTLCP", "xa_phuong": "Xã Mường Bám", "to_ban": null, "ngay_phat_hien": "2026-04-23", "ngay_ca_cuoi": "2026-06-09", "so_to_ban": 1, "so_mac": 22, "so_chet_tieu_huy": 22, "khoi_luong_tieu_huy_kg": 1231, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 15, "thoi_gian_xu_ly": 47, "muc_canh_bao": "Đỏ", "stt": 52, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày"}, {"ma_o_dich": "KB-TY-01-DTLCP-45", "benh": "DTLCP", "xa_phuong": "Xã Chiềng Sung", "to_ban": null, "ngay_phat_hien": "2026-05-06", "ngay_ca_cuoi": "2026-05-18", "so_to_ban": 1, "so_mac": 5, "so_chet_tieu_huy": 5, "khoi_luong_tieu_huy_kg": 106.5, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 37, "thoi_gian_xu_ly": 12, "muc_canh_bao": "Xanh", "stt": 53, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-46", "benh": "DTLCP", "xa_phuong": "Xã Nậm Ty", "to_ban": null, "ngay_phat_hien": "2026-05-08", "ngay_ca_cuoi": "2026-05-08", "so_to_ban": 1, "so_mac": 2, "so_chet_tieu_huy": 2, "khoi_luong_tieu_huy_kg": 200, "ghi_chu": "Hết dịch theo QĐ 431/QĐ-UBND ngày 24/6/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 47, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Xanh", "stt": 54, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-47", "benh": "DTLCP", "xa_phuong": "Xã Tà Hộc", "to_ban": null, "ngay_phat_hien": "2025-05-07", "ngay_ca_cuoi": "2026-05-17", "so_to_ban": 1, "so_mac": 9, "so_chet_tieu_huy": 9, "khoi_luong_tieu_huy_kg": 645, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 38, "thoi_gian_xu_ly": 375, "muc_canh_bao": "Xanh", "stt": 55, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-48", "benh": "DTLCP", "xa_phuong": "Xã Nậm Lầu", "to_ban": null, "ngay_phat_hien": "2026-05-16", "ngay_ca_cuoi": "2026-06-15", "so_to_ban": 2, "so_mac": 5, "so_chet_tieu_huy": 5, "khoi_luong_tieu_huy_kg": 791, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 9, "thoi_gian_xu_ly": 30, "muc_canh_bao": "Đỏ", "stt": 56, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày"}, {"ma_o_dich": "KB-TY-01-DTLCP-49", "benh": "DTLCP", "xa_phuong": "Xã Mường Sại", "to_ban": null, "ngay_phat_hien": "2026-05-09", "ngay_ca_cuoi": "2026-05-20", "so_to_ban": 1, "so_mac": 4, "so_chet_tieu_huy": 4, "khoi_luong_tieu_huy_kg": 427, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 35, "thoi_gian_xu_ly": 11, "muc_canh_bao": "Xanh", "stt": 57, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-50", "benh": "DTLCP", "xa_phuong": "Xã Bó Sinh", "to_ban": null, "ngay_phat_hien": "2026-05-16", "ngay_ca_cuoi": "2026-06-17", "so_to_ban": 2, "so_mac": 8, "so_chet_tieu_huy": 8, "khoi_luong_tieu_huy_kg": 634, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 7, "thoi_gian_xu_ly": 32, "muc_canh_bao": "Đỏ", "stt": 58, "ly_do_canh_bao": "Chưa qua 21 ngày; kéo dài trên 10 ngày"}, {"ma_o_dich": "KB-TY-01-DTLCP-51", "benh": "DTLCP", "xa_phuong": "Huổi Một", "to_ban": null, "ngay_phat_hien": "2026-05-17", "ngay_ca_cuoi": "2026-05-20", "so_to_ban": 1, "so_mac": 4, "so_chet_tieu_huy": 4, "khoi_luong_tieu_huy_kg": 290, "ghi_chu": "Hết dịch theo QĐ 601/QĐ-UBND ngày 23/6/2026", "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 35, "thoi_gian_xu_ly": 3, "muc_canh_bao": "Xanh", "stt": 59, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-52", "benh": "DTLCP", "xa_phuong": "Tô Hiệu", "to_ban": null, "ngay_phat_hien": "2026-05-31", "ngay_ca_cuoi": "2026-06-02", "so_to_ban": 2, "so_mac": 22, "so_chet_tieu_huy": 22, "khoi_luong_tieu_huy_kg": 507, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 22, "thoi_gian_xu_ly": 2, "muc_canh_bao": "Xanh", "stt": 60, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-DTLCP-53", "benh": "DTLCP", "xa_phuong": "Mường Giôn", "to_ban": null, "ngay_phat_hien": "2026-05-25", "ngay_ca_cuoi": "2026-06-04", "so_to_ban": 1, "so_mac": 5, "so_chet_tieu_huy": 5, "khoi_luong_tieu_huy_kg": 344, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 20, "thoi_gian_xu_ly": 10, "muc_canh_bao": "Vàng", "stt": 61, "ly_do_canh_bao": "Chưa qua 21 ngày, chưa đạt ngưỡng Đỏ"}, {"ma_o_dich": "KB-TY-01-DTLCP-54", "benh": "DTLCP", "xa_phuong": "Chiềng Sơ", "to_ban": null, "ngay_phat_hien": "2026-06-13", "ngay_ca_cuoi": "2026-06-23", "so_to_ban": 1, "so_mac": 24, "so_chet_tieu_huy": 24, "khoi_luong_tieu_huy_kg": 874, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 1, "thoi_gian_xu_ly": 10, "muc_canh_bao": "Vàng", "stt": 62, "ly_do_canh_bao": "Chưa qua 21 ngày, chưa đạt ngưỡng Đỏ"}, {"ma_o_dich": "KB-TY-01-DTLCP-55", "benh": "DTLCP", "xa_phuong": "Yên Sơn", "to_ban": null, "ngay_phat_hien": "2026-06-19", "ngay_ca_cuoi": "2026-06-20", "so_to_ban": 1, "so_mac": 2, "so_chet_tieu_huy": 2, "khoi_luong_tieu_huy_kg": 181, "ghi_chu": null, "ngay_bao_cao": "2026-06-24", "so_ngay_theo_doi": 4, "thoi_gian_xu_ly": 1, "muc_canh_bao": "Vàng", "stt": 63, "ly_do_canh_bao": "Chưa qua 21 ngày, chưa đạt ngưỡng Đỏ"}, {"ma_o_dich": "KB-TY-01-VDNC-01", "benh": "VDNC", "xa_phuong": "Xã Thuận Châu", "to_ban": null, "ngay_phat_hien": null, "ngay_ca_cuoi": "2026-01-07", "so_to_ban": 1, "so_mac": 1, "so_chet_tieu_huy": 1, "khoi_luong_tieu_huy_kg": 215, "ghi_chu": "Hết dịch theo QĐ 306/QĐ-UBND ngày 06/3/2026", "ngay_bao_cao": "2026-05-31", "so_ngay_theo_doi": 144, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Xanh", "stt": 64, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-VDNC-02", "benh": "VDNC", "xa_phuong": "Xã Mường É", "to_ban": null, "ngay_phat_hien": null, "ngay_ca_cuoi": "2026-01-04", "so_to_ban": 1, "so_mac": 1, "so_chet_tieu_huy": 1, "khoi_luong_tieu_huy_kg": 78, "ghi_chu": "hết dịch theo QĐ 124/QĐ-UBND ngày 13/2/2026", "ngay_bao_cao": "2026-05-31", "so_ngay_theo_doi": 147, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Xanh", "stt": 65, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-VDNC-03", "benh": "VDNC", "xa_phuong": "Xã Mường Cơi", "to_ban": null, "ngay_phat_hien": null, "ngay_ca_cuoi": "2026-04-04", "so_to_ban": 1, "so_mac": 1, "so_chet_tieu_huy": 1, "khoi_luong_tieu_huy_kg": 55, "ghi_chu": null, "ngay_bao_cao": "2026-05-31", "so_ngay_theo_doi": 57, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Xanh", "stt": 66, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-VDNC-04", "benh": "VDNC", "xa_phuong": "Xã Bắc Yên", "to_ban": null, "ngay_phat_hien": "2026-03-26", "ngay_ca_cuoi": "2026-04-07", "so_to_ban": 1, "so_mac": 4, "so_chet_tieu_huy": 0, "khoi_luong_tieu_huy_kg": null, "ghi_chu": "Hết dịch theo Quyết định số 324/QĐ-UBND ngày 12/5/2026", "ngay_bao_cao": "2026-05-31", "so_ngay_theo_doi": 54, "thoi_gian_xu_ly": 12, "muc_canh_bao": "Xanh", "stt": 67, "ly_do_canh_bao": "Đã qua 21 ngày, không phát sinh ca mới"}, {"ma_o_dich": "KB-TY-01-VDNC-05", "benh": "VDNC", "xa_phuong": "Xã Mường Bám", "to_ban": null, "ngay_phat_hien": "2026-05-12", "ngay_ca_cuoi": "2026-05-12", "so_to_ban": 5, "so_mac": 30, "so_chet_tieu_huy": 2, "khoi_luong_tieu_huy_kg": 117, "ghi_chu": null, "ngay_bao_cao": "2026-05-31", "so_ngay_theo_doi": 19, "thoi_gian_xu_ly": 0, "muc_canh_bao": "Đỏ", "stt": 68, "ly_do_canh_bao": "Chưa qua 21 ngày; từ 3 tổ/bản trở lên"}], "generated_at": "2026-07-01T03:05:00.109535", "is_snapshot": true};
+
+// ── STATE ────────────────────────────────────────────────────────────
+let API = null;
+let charts = {};
+let sortState = { key: 'muc_canh_bao', dir: 'asc' };
+
+const CANH_BAO_ORDER = { 'Đỏ': 0, 'Vàng': 1, 'Xanh': 2 };
+const DISEASE_COLORS = { 'Dại':'#0EA5E9', 'LMLM':'#14B8A6', 'DTLCP':'#DC2626', 'VDNC':'#D97706' };
+
+function _registerChart(id, config) {
+  if (charts[id]) { charts[id].destroy(); }
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, config);
+  return charts[id];
+}
+
+async function loadData() {
+  const statusEl = document.getElementById('apiStatus');
+  const refreshBtn = document.getElementById('btnRefresh');
+  const configBanner = document.getElementById('configBanner');
+  if (refreshBtn) refreshBtn.disabled = true;
+
+  if (!API_URL || API_URL.indexOf('PASTE_YOUR') >= 0) {
+    if (statusEl) statusEl.textContent = '📄 Dữ liệu mẫu tĩnh';
+    if (configBanner) configBanner.style.display = 'block';
+    API = SNAPSHOT_DATA;
+    renderAll();
+    if (refreshBtn) refreshBtn.disabled = false;
+    return;
+  }
+
+  if (statusEl) statusEl.textContent = '⏳ Đang tải dữ liệu từ Google Sheets...';
+  try {
+    const url = API_URL + (API_URL.indexOf('?') >= 0 ? '&' : '?') + 'ts=' + Date.now();
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    API = json;
+    if (configBanner) configBanner.style.display = 'none';
+    if (statusEl) statusEl.textContent = '✅ Dữ liệu trực tiếp — cập nhật ' + new Date().toLocaleTimeString('vi-VN');
+    renderAll();
+  } catch (err) {
+    console.error(err);
+    if (statusEl) statusEl.textContent = '⚠️ Lỗi tải dữ liệu — dùng dữ liệu mẫu';
+    if (configBanner) configBanner.style.display = 'block';
+    API = SNAPSHOT_DATA;
+    renderAll();
+  } finally {
+    if (refreshBtn) refreshBtn.disabled = false;
+  }
+}
+
+function renderAll() {
+  if (!API) return;
+  renderMeta();
+  renderKpi();
+  renderAlertBanner();
+  renderLocList();
+  renderDiseaseChart();
+  renderXuLyChart();
+  renderTopXaChart();
+  populateFilters();
+  renderTable();
+  document.getElementById('footUpdated').textContent =
+    'Cập nhật lần cuối: ' + new Date(API.generated_at || Date.now()).toLocaleString('vi-VN');
+}
+
+function renderMeta() {
+  const ky = (API.meta && API.meta['Kỳ dữ liệu']) || '—';
+  document.getElementById('metaKy').textContent = 'Kỳ dữ liệu: ' + ky;
+}
+
+function renderKpi() {
+  const t = API.totals;
+  document.getElementById('kpiTong').textContent = t.tong_o_dich;
+  document.getElementById('kpiTongFoot').textContent = t.so_xa_co_dich + ' xã/phường có dịch';
+  document.getElementById('kpiChua21').textContent = t.chua_qua_21_ngay;
+  document.getElementById('kpiDa21').textContent = t.da_qua_21_ngay;
+  document.getElementById('kpiDo').textContent = t.canh_bao_do;
+  document.getElementById('kpiMacChet').textContent = t.tong_mac.toLocaleString('vi-VN') + ' / ' + t.tong_chet_tieu_huy.toLocaleString('vi-VN');
+}
+
+function renderAlertBanner() {
+  const doList = API.outbreaks.filter(o => o.muc_canh_bao === 'Đỏ')
+    .sort((a,b) => (b.so_mac||0) - (a.so_mac||0));
+  const title = document.getElementById('alertTitle');
+  if (doList.length === 0) {
+    title.textContent = 'Không có ổ dịch cảnh báo Đỏ trong kỳ báo cáo hiện tại';
+  } else {
+    title.textContent = doList.length + ' ổ dịch đang ở mức cảnh báo Đỏ — cần chỉ đạo kiểm tra ngay';
+  }
+  const chips = document.getElementById('alertChips');
+  chips.innerHTML = '';
+  doList.slice(0, 10).forEach(o => {
+    const chip = document.createElement('span');
+    chip.className = 'alert-chip';
+    chip.textContent = o.xa_phuong + ' · ' + o.benh + ' · ' + (o.so_mac||0) + ' con mắc';
+    chips.appendChild(chip);
+  });
+  if (doList.length > 10) {
+    const more = document.createElement('span');
+    more.className = 'alert-chip';
+    more.textContent = '+' + (doList.length - 10) + ' ổ dịch khác';
+    chips.appendChild(more);
+  }
+}
+
+function renderLocList() {
+  const list = document.getElementById('locList');
+  list.innerHTML = '';
+  const xas = API.by_xa.slice(0, 20);
+  xas.forEach(x => {
+    const level = x.so_do > 0 ? 'do' : (x.so_vang > 0 ? 'vang' : 'xanh');
+    const row = document.createElement('div');
+    row.className = 'loc-row';
+    row.innerHTML =
+      '<span class="loc-dot ' + level + '"></span>' +
+      '<span class="loc-name">' + x.xa_phuong + '</span>' +
+      '<span class="loc-meta">' + x.so_o_dich + ' ổ · ' + x.tong_mac + ' mắc</span>' +
+      '<span class="loc-badge ' + level + '">' + x.muc_uu_tien + '</span>';
+    list.appendChild(row);
+  });
+}
+
+function renderDiseaseChart() {
+  const bd = API.by_disease;
+  _registerChart('chartDisease', {
+    type: 'bar',
+    data: {
+      labels: bd.map(d => d.benh),
+      datasets: [
+        { label: 'Số ổ dịch', data: bd.map(d => d.so_o_dich), backgroundColor: '#0F766E', borderRadius: 6, yAxisID: 'y' },
+        { label: 'Số mắc (con)', data: bd.map(d => d.tong_mac), backgroundColor: '#0EA5E9', borderRadius: 6, yAxisID: 'y1' },
+        { label: 'Chết/tiêu hủy (con)', data: bd.map(d => d.tong_chet), backgroundColor: '#DC2626', borderRadius: 6, yAxisID: 'y1' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+      scales: {
+        y: { position: 'left', title: { display: true, text: 'Số ổ dịch' }, grid: { color: '#EEF6F5' } },
+        y1: { position: 'right', title: { display: true, text: 'Con' }, grid: { drawOnChartArea: false } }
+      }
+    }
+  });
+}
+
+function renderXuLyChart() {
+  const bd = API.by_disease;
+  const avg = bd.map(d => {
+    const rows = API.outbreaks.filter(o => o.benh === d.benh && o.thoi_gian_xu_ly > 0);
+    if (!rows.length) return 0;
+    return Math.round(rows.reduce((s,o)=>s+o.thoi_gian_xu_ly,0) / rows.length * 10) / 10;
+  });
+  _registerChart('chartXuLy', {
+    type: 'bar',
+    data: {
+      labels: bd.map(d => d.benh),
+      datasets: [{ label: 'Số ngày xử lý TB', data: avg, backgroundColor: bd.map(d => DISEASE_COLORS[d.benh] || '#0F766E'), borderRadius: 6 }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { title: { display: true, text: 'Ngày' }, grid: { color: '#EEF6F5' } } }
+    }
+  });
+}
+
+function renderTopXaChart() {
+  const top = API.by_xa.slice(0, 10);
+  _registerChart('chartTopXa', {
+    type: 'bar',
+    data: {
+      labels: top.map(x => x.xa_phuong),
+      datasets: [{
+        label: 'Số ổ dịch',
+        data: top.map(x => x.so_o_dich),
+        backgroundColor: top.map(x => x.so_do > 0 ? '#DC2626' : (x.so_vang > 0 ? '#D97706' : '#16A34A')),
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { color: '#EEF6F5' } } }
+    }
+  });
+}
+
+function populateFilters() {
+  const fBenh = document.getElementById('fBenh');
+  if (fBenh.options.length <= 1) {
+    const diseases = [...new Set(API.outbreaks.map(o => o.benh))];
+    diseases.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d; opt.textContent = d;
+      fBenh.appendChild(opt);
+    });
+  }
+}
+
+function getFilteredSorted() {
+  const benh = document.getElementById('fBenh').value;
+  const canhBao = document.getElementById('fCanhBao').value;
+  const search = document.getElementById('fSearch').value.trim().toLowerCase();
+  let rows = API.outbreaks.filter(o => {
+    if (benh && o.benh !== benh) return false;
+    if (canhBao && o.muc_canh_bao !== canhBao) return false;
+    if (search) {
+      const hay = (o.xa_phuong + ' ' + o.ma_o_dich + ' ' + (o.to_ban||'')).toLowerCase();
+      if (hay.indexOf(search) === -1) return false;
+    }
+    return true;
+  });
+  const { key, dir } = sortState;
+  rows = rows.slice().sort((a, b) => {
+    let av = a[key], bv = b[key];
+    if (key === 'muc_canh_bao') { av = CANH_BAO_ORDER[av]; bv = CANH_BAO_ORDER[bv]; }
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    if (av == null) av = '';
+    if (bv == null) bv = '';
+    if (av < bv) return dir === 'asc' ? -1 : 1;
+    if (av > bv) return dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+  return rows;
+}
+
+function renderTable() {
+  const rows = getFilteredSorted();
+  const tbody = document.getElementById('oDichBody');
+  tbody.innerHTML = '';
+  rows.forEach(o => {
+    const cls = o.muc_canh_bao === 'Đỏ' ? 'do' : (o.muc_canh_bao === 'Vàng' ? 'vang' : 'xanh');
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="mono">' + o.ma_o_dich + '</td>' +
+      '<td>' + o.benh + '</td>' +
+      '<td>' + o.xa_phuong + '</td>' +
+      '<td class="muted">' + (o.to_ban || '—') + '</td>' +
+      '<td class="mono">' + (o.ngay_ca_cuoi || '—') + '</td>' +
+      '<td class="mono">' + (o.so_ngay_theo_doi ?? '—') + '</td>' +
+      '<td class="mono">' + (o.so_to_ban ?? 0) + '</td>' +
+      '<td class="mono">' + (o.so_mac ?? 0) + '</td>' +
+      '<td class="mono">' + (o.so_chet_tieu_huy ?? 0) + '</td>' +
+      '<td><span class="badge ' + cls + '">' + o.muc_canh_bao + '</span></td>' +
+      '<td class="muted" style="max-width:260px;">' + (o.ly_do_canh_bao || '') + '</td>' +
+      '<td class="muted" style="max-width:200px;">' + (o.ghi_chu || '') + '</td>';
+    tbody.appendChild(tr);
+  });
+  document.getElementById('filterCount').textContent = rows.length + ' / ' + API.outbreaks.length + ' dòng';
+}
+
+document.querySelectorAll('#oDichTable thead th').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.key;
+    if (sortState.key === key) { sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc'; }
+    else { sortState.key = key; sortState.dir = 'asc'; }
+    document.querySelectorAll('#oDichTable thead .arrow').forEach(a => a.textContent = '');
+    th.querySelector('.arrow').textContent = sortState.dir === 'asc' ? '▲' : '▼';
+    renderTable();
+  });
+});
+
+['fBenh','fCanhBao'].forEach(id => document.getElementById(id).addEventListener('change', renderTable));
+document.getElementById('fSearch').addEventListener('input', renderTable);
+
+document.addEventListener('DOMContentLoaded', loadData);
+</script>
+
+</body>
+</html>
